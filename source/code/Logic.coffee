@@ -83,6 +83,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState,
 				gameState.next,
 				gameState.grid )
+			processGrid(
+				gameState.grid )
 
 
 	refillNext = ( next ) ->
@@ -109,6 +111,21 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				grid[ x ][ y ] = square
 
 			next.squares.length = 0
+
+	processGrid = ( grid ) ->
+		for x in [ 0...grid.length ]
+			topSquare = grid[ x ][ 0 ]
+			unless topSquare == "empty"
+				remove = true
+
+				for y in [ 0...grid[ x ].length ]
+					square = grid[ x ][ y ]
+					remove = remove and square == topSquare
+
+					if remove
+						grid[ x ][ y ] = "empty"
+					else
+						grid[ x ][ y ] = "blocked"
 
 
 	module
