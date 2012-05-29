@@ -19,6 +19,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			appendSquares(
 				gameState.grid,
 				renderState.renderables )
+			appendNext(
+				gameState.next,
+				renderState.renderables )
 
 
 	appendGrid = ( renderables ) ->
@@ -43,26 +46,40 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			i += cellSize
 
 	appendSquares = ( grid, renderables ) ->
-		margin = 2
-
 		for x in [ 0...grid.length ]
 			for y in [ 0...grid[ x ].length ]
 				cell = grid[ x ][ y ]
-				unless cell == "empty"
-					renderable = Rendering.createRenderable( "rectangle" )
-					renderable.position = [
-						min + x*cellSize + margin
-						min + y*cellSize + margin ]
-					renderable.resource =
-						size: [
-							cellSize - margin*2
-							cellSize - margin*2 ]
+				appendCell(
+					x,
+					y,
+					cell,
+					renderables )
 
-					renderable.resource.color = switch cell
-						when "red"   then "rgb(255,0,0)"
-						when "green" then "rgb(0,255,0)"
+	appendNext = ( next, renderables ) ->
+		for square, i  in next.squares
+			appendCell(
+				i + next.offset,
+				-1,
+				square,
+				renderables )
 
-					renderables.push( renderable )
+	appendCell = ( x, y, cell, renderables ) ->
+		margin = 2
 
+		unless cell == "empty"
+			renderable = Rendering.createRenderable( "rectangle" )
+			renderable.position = [
+				min + x*cellSize + margin
+				min + y*cellSize + margin ]
+			renderable.resource =
+				size: [
+					cellSize - margin*2
+					cellSize - margin*2 ]
+
+			renderable.resource.color = switch cell
+				when "red"   then "rgb(255,0,0)"
+				when "green" then "rgb(0,255,0)"
+
+			renderables.push( renderable )
 
 	module

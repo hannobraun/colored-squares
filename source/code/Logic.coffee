@@ -27,6 +27,10 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 	module =
 		createGameState: ->
 			gameState =
+				next:
+					offset : 1
+					squares: [ "red", "empty", "green" ]
+
 				grid: []
 
 				# Game entities are made up of components. The components will
