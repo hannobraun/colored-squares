@@ -25,6 +25,10 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			appendScore(
 				gameState.score,
 				renderState.renderables )
+			appendEndScore(
+				gameState.lost,
+				gameState.score,
+				renderState.renderables )
 
 
 	appendGrid = ( renderables ) ->
@@ -96,5 +100,39 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			font: "32px Monospace"
 
 		renderables.push( renderable )
+
+	appendEndScore = ( lost, score, renderables ) ->
+		if lost
+			size = [ 440, 150 ]
+
+			position = Vec2.copy( size )
+			Vec2.scale( position, -0.5)
+
+			box = Rendering.createRenderable( "rectangle" )
+			box.position = position
+			box.resource =
+				color: "rgb(255,255,255)"
+				size : size
+
+			congratulations = Rendering.createRenderable( "text" )
+			congratulations.position = [ 0, -30 ]
+			congratulations.resource =
+				string: "Congratulations!"
+				textColor: "rgb(0,0,0)"
+				centered: [ true, false ]
+				font: "40px Monospace"
+
+			scoreMessage = Rendering.createRenderable( "text" )
+			scoreMessage.position = [ 0, 30 ]
+			scoreMessage.resource =
+				string: "You got #{ score } points!"
+				textColor: "rgb(0,0,0)"
+				centered: [ true, false ]
+				font: "40px Monospace"
+			 
+
+			renderables.push( box )
+			renderables.push( congratulations )
+			renderables.push( scoreMessage )
 
 	module
