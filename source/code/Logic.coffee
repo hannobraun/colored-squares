@@ -115,8 +115,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 	processGrid = ( grid ) ->
 		for x in [ 0...grid.length ]
 			topSquare = grid[ x ][ 0 ]
-			unless topSquare == "empty"
-				remove = true
+			unless topSquare == "empty" or topSquare == "blocked"
+				secondSquare = grid[ x ][ 1 ]
+				remove = topSquare == secondSquare
 
 				for y in [ 0...grid[ x ].length ]
 					square = grid[ x ][ y ]
