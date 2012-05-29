@@ -1,6 +1,6 @@
 module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 ) ->
 	cellSize = 32
-	gridSize = 10
+	gridSize = 9
 
 	max = gridSize / 2 * cellSize
 	min = -max

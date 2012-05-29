@@ -63,9 +63,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 			next = gameState.next
 
 
-			for x in [ 0..9 ]
+			for x in [ 0..8 ]
 				grid[ x ] = []
-				for y in [ 0..9 ]
+				for y in [ 0..8 ]
 					grid[ x ][ y ] = "empty"
 
 
@@ -78,7 +78,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 					grid.length - next.squares.length,
 					next.offset )
 
-			Input.onKeys [ "space" ], ->
+			Input.onKeys [ "space", "down arrow" ], ->
 				unless gameState.lost
 					gameState.launchNext = true
 
