@@ -77,8 +77,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					cellSize - margin*2 ]
 
 			renderable.resource.color = switch cell
-				when "red"   then "rgb(255,0,0)"
-				when "green" then "rgb(0,255,0)"
+				when "red"     then "rgb(255,0,0)"
+				when "green"   then "rgb(0,255,0)"
+				when "blocked" then "rgb(127,127,127)"
 
 			renderables.push( renderable )
 
