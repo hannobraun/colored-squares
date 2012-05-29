@@ -1,0 +1,3 @@
+[submodule "vendor/noop"]
+	path = vendor/noop
+	url = git://github.com/hbraun/noop.git
