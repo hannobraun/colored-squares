@@ -74,7 +74,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 	launchNext = ( gameState, next, grid ) ->
 		if gameState.launchNext
-			gameState.launchNext = false
+			gameState.launchNext  = false
 
 			for square, i in next.squares
 				x = i + next.offset
@@ -85,6 +85,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 						y += 1
 
 				grid[ x ][ y ] = square
+
+			next.squares.length = 0
 
 
 	module
