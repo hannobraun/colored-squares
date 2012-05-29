@@ -88,6 +88,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState,
 				gameState.next,
 				gameState.grid )
+			blockSquares(
+				gameState.grid )
 			processGrid(
 				gameState,
 				gameState.grid )
@@ -120,6 +122,19 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				grid[ x ][ y ] = square
 
 			next.squares.length = 0
+
+	blockSquares = ( grid ) ->
+		for x in [ 0...grid.length ]
+			topSquare = null
+
+			for y in [ 0...grid[ 0 ].length ]
+				square = grid[ x ][ y ]
+				if topSquare == null and square != "empty"
+					topSquare = square
+
+				if topSquare != null and square != topSquare
+					grid[ x ][ y ] = "blocked"
+
 
 	processGrid = ( gameState, grid ) ->
 		for x in [ 0...grid.length ]
