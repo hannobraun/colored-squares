@@ -1,26 +1,43 @@
 module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 ) ->
+	gridWidth = 32
+	gridSize  = 10
+
+
 	module =
 		createRenderState: ->
 			renderState =
-				camera: Camera.createCamera()
 				renderables: []
 
 		updateRenderState: ( renderState, gameState ) ->
-			renderState.camera.position = Vec2.copy( gameState.focus )
-
-
 			renderState.renderables.length = 0
 
-			for entityId, position of gameState.components.positions
-				imageId = gameState.components.imageIds[ entityId ]
-
-				renderable = Rendering.createRenderable( "image" )
-				renderable.resourceId = imageId
-				renderable.position   = Vec2.copy( position )
-
-				renderState.renderables.push( renderable )
-
-
-			Camera.transformRenderables(
-				renderState.camera,
+			appendGrid(
 				renderState.renderables )
+
+
+	appendGrid = ( renderables ) ->
+		max = gridSize / 2 * gridWidth
+		min = -max
+
+		i = min
+
+		while i <= max
+			horizontal = Rendering.createRenderable( "line" )
+			horizontal.resource =
+				color: "rgb(255,255,255)"
+				start: [ min, i ]
+				end  : [ max, i ]
+
+			vertical = Rendering.createRenderable( "line" )
+			vertical.resource =
+				color: "rgb(255,255,255)"
+				start: [ i, min ]
+				end  : [ i, max ]
+
+			renderables.push( horizontal )
+			renderables.push( vertical )
+
+			i += gridWidth
+
+
+	module
