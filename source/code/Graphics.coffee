@@ -1,6 +1,9 @@
 module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 ) ->
-	gridWidth = 32
-	gridSize  = 10
+	cellSize = 32
+	gridSize = 10
+
+	max = gridSize / 2 * cellSize
+	min = -max
 
 
 	module =
@@ -13,12 +16,12 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 			appendGrid(
 				renderState.renderables )
+			appendSquares(
+				gameState.grid,
+				renderState.renderables )
 
 
 	appendGrid = ( renderables ) ->
-		max = gridSize / 2 * gridWidth
-		min = -max
-
 		i = min
 
 		while i <= max
@@ -37,7 +40,29 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderables.push( horizontal )
 			renderables.push( vertical )
 
-			i += gridWidth
+			i += cellSize
+
+	appendSquares = ( grid, renderables ) ->
+		margin = 2
+
+		for x in [ 0...grid.length ]
+			for y in [ 0...grid[ x ].length ]
+				cell = grid[ x ][ y ]
+				unless cell == "empty"
+					renderable = Rendering.createRenderable( "rectangle" )
+					renderable.position = [
+						min + x*cellSize + margin
+						min + y*cellSize + margin ]
+					renderable.resource =
+						size: [
+							cellSize - margin*2
+							cellSize - margin*2 ]
+
+					renderable.resource.color = switch cell
+						when "red"   then "rgb(255,0,0)"
+						when "green" then "rgb(0,255,0)"
+
+					renderables.push( renderable )
 
 
 	module
