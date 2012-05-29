@@ -55,12 +55,23 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 
 			grid = gameState.grid
+			next = gameState.next
+
 
 			for x in [0..9]
 				grid[ x ] = []
 				for y in [0..9]
 					grid[ x ][ y ] = "empty"
 
+
+			Input.onKeys [ "left arrow" ], ->
+				next.offset -= 1
+				next.offset = Math.max( 0, next.offset )
+			Input.onKeys [ "right arrow" ], ->
+				next.offset += 1
+				next.offset = Math.min(
+					grid.length - next.squares.length,
+					next.offset )
 
 			Input.onKeys [ "enter" ], ( keyName, event ) ->
 				gameState.launchNext = true
