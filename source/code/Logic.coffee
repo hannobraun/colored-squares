@@ -89,6 +89,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState.next,
 				gameState.grid )
 			processGrid(
+				gameState,
 				gameState.grid )
 			checkLoseCondition(
 				gameState,
@@ -120,12 +121,14 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 			next.squares.length = 0
 
-	processGrid = ( grid ) ->
+	processGrid = ( gameState, grid ) ->
 		for x in [ 0...grid.length ]
 			topSquare = grid[ x ][ 0 ]
 			unless topSquare == "empty" or topSquare == "blocked"
 				secondSquare = grid[ x ][ 1 ]
 				remove = topSquare == secondSquare
+
+				removedSquares = 0
 
 				for y in [ 0...grid[ x ].length ]
 					square = grid[ x ][ y ]
@@ -133,8 +136,11 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 					if remove
 						grid[ x ][ y ] = "empty"
+						removedSquares += 1
 					else
 						grid[ x ][ y ] = "blocked"
+
+				gameState.score += removedSquares*removedSquares
 
 	checkLoseCondition = ( gameState, grid ) ->
 		for column in grid
