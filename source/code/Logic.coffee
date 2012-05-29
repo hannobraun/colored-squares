@@ -121,6 +121,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 				grid[ x ][ y ] = square
 
+				if y > 0
+					gameState.score += 1
+
 			next.squares.length = 0
 
 	blockSquares = ( grid ) ->
