@@ -35,7 +35,10 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 				grid: []
 
-				lost: false
+				lost : false
+				reset: false
+
+				score: 0
 
 				# Game entities are made up of components. The components will
 				# be stored in this map.

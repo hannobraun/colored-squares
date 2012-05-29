@@ -22,6 +22,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			appendNext(
 				gameState.next,
 				renderState.renderables )
+			appendScore(
+				gameState.score,
+				renderState.renderables )
 
 
 	appendGrid = ( renderables ) ->
@@ -82,5 +85,16 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				when "blocked" then "rgb(127,127,127)"
 
 			renderables.push( renderable )
+
+	appendScore = ( score, renderables ) ->
+		renderable = Rendering.createRenderable( "text" )
+		renderable.position = [ 0, max + 40 ]
+		renderable.resource =
+			string: "#{ score }"
+			textColor: "rgb(255,255,255)"
+			centered: [ true, false ]
+			font: "32px Monospace"
+
+		renderables.push( renderable )
 
 	module
