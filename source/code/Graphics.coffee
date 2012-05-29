@@ -120,7 +120,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				string: "Congratulations!"
 				textColor: "rgb(0,0,0)"
 				centered: [ true, false ]
-				font: "40px Monospace"
+				font: "35px Monospace"
 
 			scoreMessage = Rendering.createRenderable( "text" )
 			scoreMessage.position = [ 0, 30 ]
@@ -128,7 +128,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				string: "You got #{ score } points!"
 				textColor: "rgb(0,0,0)"
 				centered: [ true, false ]
-				font: "40px Monospace"
+				font: "35px Monospace"
 
 			resetMessage = Rendering.createRenderable( "text" )
 			resetMessage.position = [ 0, 60 ]
