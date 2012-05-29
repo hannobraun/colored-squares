@@ -23,7 +23,7 @@ module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics"
 		Logic.initGameState( gameState )
 
 		MainLoop.execute ( currentTimeInS, passedTimeInS ) ->
-			if gameState.lost
+			if gameState.reset
 				gameState = Logic.createGameState()
 				Logic.initGameState( gameState )
 

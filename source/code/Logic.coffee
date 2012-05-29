@@ -139,5 +139,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 			gameState.lost = gameState.lost or topSquare != "empty"
 
+		gameState.reset = gameState.lost
+
 
 	module
