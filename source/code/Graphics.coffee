@@ -129,10 +129,19 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				textColor: "rgb(0,0,0)"
 				centered: [ true, false ]
 				font: "40px Monospace"
+
+			resetMessage = Rendering.createRenderable( "text" )
+			resetMessage.position = [ 0, 60 ]
+			resetMessage.resource =
+				string: "(press enter to reset)"
+				textColor: "rgb(0,0,0)"
+				centered: [ true, false ]
+				font: "20px Monospace"
 			 
 
 			renderables.push( box )
 			renderables.push( congratulations )
 			renderables.push( scoreMessage )
+			renderables.push( resetMessage )
 
 	module
