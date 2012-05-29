@@ -35,6 +35,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 				grid: []
 
+				lost: false
+
 				# Game entities are made up of components. The components will
 				# be stored in this map.
 				components: {}
@@ -85,6 +87,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState.grid )
 			processGrid(
 				gameState.grid )
+			checkLoseCondition(
+				gameState,
+				gameState.grid )
 
 
 	refillNext = ( next ) ->
@@ -127,6 +132,12 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 						grid[ x ][ y ] = "empty"
 					else
 						grid[ x ][ y ] = "blocked"
+
+	checkLoseCondition = ( gameState, grid ) ->
+		for column in grid
+			topSquare = column[ 0 ]
+
+			gameState.lost = gameState.lost or topSquare != "empty"
 
 
 	module
