@@ -31,6 +31,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 					offset : 1
 					squares: [ "red", "empty", "green" ]
 
+				launchNext: false
+
 				grid: []
 
 				# Game entities are made up of components. The components will
@@ -59,15 +61,30 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				for y in [0..9]
 					grid[ x ][ y ] = "empty"
 
-			grid[ 3 ][ 4 ] = "green"
-			grid[ 4 ][ 3 ] = "red"
+
+			Input.onKeys [ "enter" ], ( keyName, event ) ->
+				gameState.launchNext = true
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
-			for entityId, position of gameState.components.positions
-				movement = gameState.components.movements[ entityId ]
+			launchNext(
+				gameState,
+				gameState.next,
+				gameState.grid )
 
-				angle = timeInS * movement.speed
-				position[ 0 ] = movement.radius * Math.cos( angle )
-				position[ 1 ] = movement.radius * Math.sin( angle )
 
-				Vec2.add( position, currentInput.pointerPosition )
+	launchNext = ( gameState, next, grid ) ->
+		if gameState.launchNext
+			gameState.launchNext = false
+
+			for square, i in next.squares
+				x = i + next.offset
+
+				y = -1
+				for cell in grid[ x ]
+					if cell == "empty"
+						y += 1
+
+				grid[ x ][ y ] = square
+
+
+	module
