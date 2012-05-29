@@ -28,8 +28,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 		createGameState: ->
 			gameState =
 				next:
-					offset : 1
-					squares: [ "red", "empty", "green" ]
+					offset : 4
+					squares: []
 
 				launchNext: false
 
@@ -66,11 +66,22 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState.launchNext = true
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
+			refillNext(
+				gameState.next )
 			launchNext(
 				gameState,
 				gameState.next,
 				gameState.grid )
 
+
+	refillNext = ( next ) ->
+		if next.squares.length == 0
+			for i in [0..2]
+				possibleSquares = [ "red", "green" ]
+				randomIndex  = Math.floor( Math.random() * possibleSquares.length )
+				randomSquare = possibleSquares[ randomIndex ]
+
+				next.squares[ i ] = randomSquare
 
 	launchNext = ( gameState, next, grid ) ->
 		if gameState.launchNext
