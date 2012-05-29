@@ -73,7 +73,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 					grid.length - next.squares.length,
 					next.offset )
 
-			Input.onKeys [ "enter" ], ( keyName, event ) ->
+			Input.onKeys [ "space" ], ( keyName, event ) ->
 				gameState.launchNext = true
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
