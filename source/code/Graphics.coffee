@@ -32,25 +32,29 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 
 	appendGrid = ( renderables ) ->
-		i = min
-
-		while i <= max
-			horizontal = Rendering.createRenderable( "line" )
-			horizontal.resource =
-				color: "rgb(255,255,255)"
-				start: [ min, i ]
-				end  : [ max, i ]
-
+		x = min
+		while x <= max
 			vertical = Rendering.createRenderable( "line" )
 			vertical.resource =
 				color: "rgb(255,255,255)"
-				start: [ i, min ]
-				end  : [ i, max ]
+				start: [ x, min ]
+				end  : [ x, max ]
 
-			renderables.push( horizontal )
 			renderables.push( vertical )
 
-			i += cellSize
+			x += cellSize
+
+		y = min
+		while y <= max
+			horizontal = Rendering.createRenderable( "line" )
+			horizontal.resource =
+				color: "rgb(255,255,255)"
+				start: [ min, y ]
+				end  : [ max, y ]
+
+			renderables.push( horizontal )
+
+			y += cellSize
 
 	appendSquares = ( grid, renderables ) ->
 		for x in [ 0...grid.length ]
