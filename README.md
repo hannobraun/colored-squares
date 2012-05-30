@@ -11,5 +11,7 @@ entry after working only 6 hours on it. The randomly chosen genre was "Puzzle".
 
 ## How To Play
 
+Play the game here: http://hannobraun.com/colored-squares/
+
 Use the left, right and down arrow keys for control. Try to stack blocks of the
 same color as high as possible.
