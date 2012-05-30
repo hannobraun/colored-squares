@@ -63,9 +63,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 			next = gameState.next
 
 
-			for x in [ 0..8 ]
+			for x in [ 0...9 ]
 				grid[ x ] = []
-				for y in [ 0..8 ]
+				for y in [ 0...9 ]
 					grid[ x ][ y ] = "empty"
 
 
