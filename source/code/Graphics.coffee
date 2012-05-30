@@ -82,7 +82,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 		unless square == "empty"
 			renderable = Rendering.createRenderable( "rectangle" )
 			renderable.position = [
-				yMin( grid ) + x*cellSize + margin
+				xMin( grid ) + x*cellSize + margin
 				yMin( grid ) + y*cellSize + margin ]
 			renderable.resource =
 				size: [
