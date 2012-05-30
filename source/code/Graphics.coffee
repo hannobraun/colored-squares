@@ -56,7 +56,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 		for x in [ 0...grid.length ]
 			for y in [ 0...grid[ x ].length ]
 				cell = grid[ x ][ y ]
-				appendCell(
+				appendSquare(
 					x,
 					y,
 					cell,
@@ -64,13 +64,13 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 	appendNext = ( next, renderables ) ->
 		for square, i  in next.squares
-			appendCell(
+			appendSquare(
 				i + next.offset,
 				-1,
 				square,
 				renderables )
 
-	appendCell = ( x, y, cell, renderables ) ->
+	appendSquare = ( x, y, cell, renderables ) ->
 		margin = 2
 
 		unless cell == "empty"
