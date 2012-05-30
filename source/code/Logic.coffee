@@ -168,7 +168,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				gameState.score += removedSquares*removedSquares
 
 	removeFullColumns = ( grid, next ) ->
-		if grid.length > 3
+		if grid.length > next.numberOfSquares
 
 			noMoreColumnsToRemove = false
 
