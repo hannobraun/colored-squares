@@ -97,6 +97,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 			removeSquares(
 				gameState,
 				gameState.grid )
+			removeFullColumns(
+				gameState.grid,
+				gameState.next )
 			checkLoseCondition(
 				gameState,
 				gameState.grid )
@@ -161,6 +164,29 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 						removedSquares += 1
 
 				gameState.score += removedSquares*removedSquares
+
+	removeFullColumns = ( grid, next ) ->
+		if grid.length > 3
+
+			noMoreColumnsToRemove = false
+
+			until noMoreColumnsToRemove
+				columnsToRemove = []
+
+				for column, x in grid
+					topSquare = column[ 0 ]
+
+					if topSquare != "empty"
+						columnsToRemove.push( x )
+
+				if columnsToRemove.length > 0
+					xToRemove = columnsToRemove.shift()
+					grid.splice( xToRemove, 1 )
+
+					noMoreColumnsToRemove =
+						columnsToRemove.length == 0 or grid.length == 3
+				else
+					noMoreColumnsToRemove = true
 
 	checkLoseCondition = ( gameState, grid ) ->
 		for column in grid
