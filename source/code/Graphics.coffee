@@ -2,9 +2,6 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 	cellSize = 32
 	gridSize = 9
 
-	max = gridSize / 2 * cellSize
-	min = -max
-
 
 	module =
 		createRenderState: ->
@@ -15,15 +12,18 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderState.renderables.length = 0
 
 			appendGrid(
+				gameState.grid,
 				renderState.renderables )
 			appendSquares(
 				gameState.grid,
 				renderState.renderables )
 			appendNext(
 				gameState.next,
+				gameState.grid,
 				renderState.renderables )
 			appendScore(
 				gameState.score,
+				gameState.grid,
 				renderState.renderables )
 			appendEndScore(
 				gameState.lost,
@@ -31,26 +31,26 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				renderState.renderables )
 
 
-	appendGrid = ( renderables ) ->
-		x = min
-		while x <= max
+	appendGrid = ( grid, renderables ) ->
+		x = xMin( grid )
+		while x <= xMax( grid )
 			vertical = Rendering.createRenderable( "line" )
 			vertical.resource =
 				color: "rgb(255,255,255)"
-				start: [ x, min ]
-				end  : [ x, max ]
+				start: [ x, yMin( grid ) ]
+				end  : [ x, yMax( grid ) ]
 
 			renderables.push( vertical )
 
 			x += cellSize
 
-		y = min
-		while y <= max
+		y = yMin( grid )
+		while y <= yMax( grid )
 			horizontal = Rendering.createRenderable( "line" )
 			horizontal.resource =
 				color: "rgb(255,255,255)"
-				start: [ min, y ]
-				end  : [ max, y ]
+				start: [ xMin( grid ), y ]
+				end  : [ xMax( grid ), y ]
 
 			renderables.push( horizontal )
 
@@ -63,25 +63,27 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				appendSquare(
 					x,
 					y,
+					grid,
 					square,
 					renderables )
 
-	appendNext = ( next, renderables ) ->
+	appendNext = ( next, grid, renderables ) ->
 		for square, i  in next.squares
 			appendSquare(
 				i + next.offset,
 				-1,
+				grid,
 				square,
 				renderables )
 
-	appendSquare = ( x, y, square, renderables ) ->
+	appendSquare = ( x, y, grid, square, renderables ) ->
 		margin = 2
 
 		unless square == "empty"
 			renderable = Rendering.createRenderable( "rectangle" )
 			renderable.position = [
-				min + x*cellSize + margin
-				min + y*cellSize + margin ]
+				yMin( grid ) + x*cellSize + margin
+				yMin( grid ) + y*cellSize + margin ]
 			renderable.resource =
 				size: [
 					cellSize - margin*2
@@ -94,9 +96,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 			renderables.push( renderable )
 
-	appendScore = ( score, renderables ) ->
+	appendScore = ( score, grid, renderables ) ->
 		renderable = Rendering.createRenderable( "text" )
-		renderable.position = [ 0, max + 40 ]
+		renderable.position = [ 0, yMax( grid ) + 40 ]
 		renderable.resource =
 			string: "#{ score }"
 			textColor: "rgb(255,255,255)"
@@ -147,5 +149,18 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderables.push( congratulations )
 			renderables.push( scoreMessage )
 			renderables.push( resetMessage )
+
+	xMin = ( grid ) ->
+		-gridSize / 2 * cellSize
+
+	xMax = ( grid ) ->
+		gridSize / 2 * cellSize
+
+	yMin = ( grid ) ->
+		-gridSize / 2 * cellSize
+
+	yMax = ( grid ) ->
+		gridSize / 2 * cellSize
+
 
 	module
