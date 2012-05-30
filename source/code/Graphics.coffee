@@ -55,11 +55,11 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 	appendSquares = ( grid, renderables ) ->
 		for x in [ 0...grid.length ]
 			for y in [ 0...grid[ x ].length ]
-				cell = grid[ x ][ y ]
+				square = grid[ x ][ y ]
 				appendSquare(
 					x,
 					y,
-					cell,
+					square,
 					renderables )
 
 	appendNext = ( next, renderables ) ->
