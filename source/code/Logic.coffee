@@ -190,6 +190,9 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 				else
 					noMoreColumnsToRemove = true
 
+		if next.offset + next.numberOfSquares > grid.length
+			next.offset = grid.length - next.numberOfSquares
+
 	checkLoseCondition = ( gameState, grid ) ->
 		for column in grid
 			topSquare = column[ 0 ]
