@@ -28,7 +28,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 		createGameState: ->
 			gameState =
 				next:
-					offset : 4
+					offset : 3
 					squares: []
 
 				launchNext: false
