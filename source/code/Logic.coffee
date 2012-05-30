@@ -28,6 +28,8 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 		createGameState: ->
 			gameState =
 				next:
+					numberOfSquares: 3
+
 					offset : 3
 					squares: []
 
@@ -107,7 +109,7 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 
 	refillNext = ( next ) ->
 		if next.squares.length == 0
-			for i in [0..2]
+			for i in [ 0...next.numberOfSquares ]
 				possibleSquares = [ "red", "green" ]
 				randomIndex  = Math.floor( Math.random() * possibleSquares.length )
 				randomSquare = possibleSquares[ randomIndex ]
