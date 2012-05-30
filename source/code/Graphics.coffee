@@ -151,16 +151,16 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderables.push( resetMessage )
 
 	xMin = ( grid ) ->
-		-gridSize / 2 * cellSize
+		-grid.length / 2 * cellSize
 
 	xMax = ( grid ) ->
-		gridSize / 2 * cellSize
+		grid.length / 2 * cellSize
 
 	yMin = ( grid ) ->
-		-gridSize / 2 * cellSize
+		-grid[ 0 ].length / 2 * cellSize
 
 	yMax = ( grid ) ->
-		gridSize / 2 * cellSize
+		grid[ 0 ].length / 2 * cellSize
 
 
 	module
