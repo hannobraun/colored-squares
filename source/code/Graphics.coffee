@@ -70,10 +70,10 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				square,
 				renderables )
 
-	appendSquare = ( x, y, cell, renderables ) ->
+	appendSquare = ( x, y, square, renderables ) ->
 		margin = 2
 
-		unless cell == "empty"
+		unless square == "empty"
 			renderable = Rendering.createRenderable( "rectangle" )
 			renderable.position = [
 				min + x*cellSize + margin
@@ -83,7 +83,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					cellSize - margin*2
 					cellSize - margin*2 ]
 
-			renderable.resource.color = switch cell
+			renderable.resource.color = switch square
 				when "red"     then "rgb(255,0,0)"
 				when "green"   then "rgb(0,255,0)"
 				when "blocked" then "rgb(127,127,127)"
