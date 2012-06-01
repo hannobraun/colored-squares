@@ -223,16 +223,18 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 					currentY -= 1
 
 	checkLoseCondition = ( gameState, grid ) ->
-		for column in grid
-			topSquare = column[ 0 ]
+		unless gameState.lost
+			for column in grid
+				topSquare = column[ 0 ]
 
-			gameState.lost = gameState.lost or topSquare != "empty"
+				gameState.lost = gameState.lost or topSquare != "empty"
 
-		if gameState.lost
-			Stats.submit( "endOfGame", {
-				startTime  : window.startTime
-				currentTime: new Date().toString()
-				score      : gameState.score } )
+				if gameState.lost
+					console.log( "!" )
+					Stats.submit( "endOfGame", {
+						startTime  : window.startTime
+						currentTime: new Date().toString()
+						score      : gameState.score } )
 
 
 	module
