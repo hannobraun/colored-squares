@@ -1,5 +1,6 @@
 module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics", "Stats" ], ( Images, Rendering, Input, MainLoop, Logic, Graphics, Stats )->
-	Stats.sayHello( "Colored Squares" )
+	window.startTime = new Date().toString()
+	Stats.sayHello()
 
 	Images.loadImages [ "images/star.png" ], ( rawImages ) ->
 		images = Images.process( rawImages )

@@ -87,6 +87,14 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 			Input.onKeys [ "enter" ], ->
 				gameState.reset = gameState.lost
 
+
+			window.onbeforeunload = ->
+				Stats.submit( "quit", {
+					startTime: window.startTime
+					endTime  : new Date().toString()
+					score    : gameState.score
+					lost     : gameState.lost } )
+
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			refillNext(
 				gameState.next )
@@ -219,6 +227,12 @@ module "Logic", [ "Input", "Entities", "Vec2" ], ( Input, Entities, Vec2 ) ->
 			topSquare = column[ 0 ]
 
 			gameState.lost = gameState.lost or topSquare != "empty"
+
+		if gameState.lost
+			Stats.submit( "endOfGame", {
+				startTime  : window.startTime
+				currentTime: new Date().toString()
+				score      : gameState.score } )
 
 
 	module
