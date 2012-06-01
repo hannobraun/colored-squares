@@ -210,7 +210,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 				currentY  = column.length - 1
 				nextFreeY = column.length - 1
 
-				until column[ currentY ] == "empty"
+				until column[ currentY ] == "empty" || currentY < 0
 					if column[ currentY ] == "blocked"
 						column[ currentY ] = "empty"
 					else
