@@ -1,0 +1,4 @@
+2012-06-01:
+	Port everything in Logic to an event-based approach based on Events module.
+2012-06-01:
+	Canvas fallback message is not visible due to black background.
