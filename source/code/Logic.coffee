@@ -230,7 +230,6 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 				gameState.lost = gameState.lost or topSquare != "empty"
 
 				if gameState.lost
-					console.log( "!" )
 					Stats.submit( "endOfGame", {
 						startTime  : window.startTime
 						currentTime: new Date().toString()
