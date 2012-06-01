@@ -1,4 +1,6 @@
-module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics" ], ( Images, Rendering, Input, MainLoop, Logic, Graphics )->
+module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics", "Stats" ], ( Images, Rendering, Input, MainLoop, Logic, Graphics, Stats )->
+	Stats.sayHello( "Colored Squares" )
+
 	Images.loadImages [ "images/star.png" ], ( rawImages ) ->
 		images = Images.process( rawImages )
 
