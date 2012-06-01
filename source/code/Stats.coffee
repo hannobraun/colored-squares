@@ -21,7 +21,7 @@ module "Stats", [], ->
 			head = document.getElementsByTagName( "head" )[ 0 ]
 			head.appendChild( script )
 
-		submit: ( unencodedTopic, data ) ->
+		submit: ( unencodedTopic, data, wait ) ->
 			topic = encodeURIComponent( unencodedTopic )
 
 			url = "http://stats.hannobraun.com/submit/#{ appId }/#{ topic }"
@@ -32,6 +32,6 @@ module "Stats", [], ->
 				data          : data
 
 			request = new XMLHttpRequest()
-			request.open( "POST", url, true )
+			request.open( "POST", url, wait or true )
 			request.setRequestHeader( "Content-Type", "application/json" )
 			request.send( JSON.stringify( stats ) )

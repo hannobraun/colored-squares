@@ -93,7 +93,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 					startTime: window.startTime
 					endTime  : new Date().toString()
 					score    : gameState.score
-					lost     : gameState.lost } )
+					lost     : gameState.lost }, false )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			refillNext(
