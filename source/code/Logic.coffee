@@ -169,9 +169,6 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 					from    : "empty"
 					to      : square } )
 
-				if y > 0
-					gameState.score += 1
-
 			next.squares.length = 0
 
 	blockSquares = ( grid, gameState ) ->
