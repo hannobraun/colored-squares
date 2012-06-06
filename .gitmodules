@@ -1,3 +1,6 @@
 [submodule "vendor/noop"]
 	path = vendor/noop
 	url = git://github.com/hbraun/noop.git
+[submodule "vendor/playtomic-gameapi-html5"]
+	path = vendor/playtomic-gameapi-html5
+	url = git://github.com/playtomic/gameapi-html5.git
