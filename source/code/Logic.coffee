@@ -1,4 +1,4 @@
-module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec2, Stats ) ->
+module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities, Vec2, Playtomic ) ->
 	nextEntityId = 0
 
 	entityFactories =
@@ -47,6 +47,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 				components: {}
 
 		initGameState: ( gameState ) ->
+			Playtomic.play()
+
 			# These are the shortcuts we will use for creating and destroying
 			# entities.
 			createEntity = ( type, args ) ->
@@ -88,14 +90,10 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 				gameState.reset = gameState.lost
 
 
-			window.onbeforeunload = ->
-				Stats.submit( "quit", {
-					startTime: window.startTime
-					endTime  : new Date().toString()
-					score    : gameState.score
-					lost     : gameState.lost }, false )
-
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
+			unless gameState.startTimeInS?
+				gameState.startTimeInS = timeInS
+
 			refillNext(
 				gameState.next )
 			launchNext(
@@ -112,7 +110,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 				gameState.next )
 			checkLoseCondition(
 				gameState,
-				gameState.grid )
+				gameState.grid,
+				timeInS )
 
 
 	refillNext = ( next ) ->
@@ -222,18 +221,20 @@ module "Logic", [ "Input", "Entities", "Vec2", "Stats" ], ( Input, Entities, Vec
 
 					currentY -= 1
 
-	checkLoseCondition = ( gameState, grid ) ->
+	checkLoseCondition = ( gameState, grid, timeInS ) ->
 		unless gameState.lost
 			for column in grid
 				topSquare = column[ 0 ]
 
 				gameState.lost = gameState.lost or topSquare != "empty"
 
-				if gameState.lost
-					Stats.submit( "endOfGame", {
-						startTime  : window.startTime
-						currentTime: new Date().toString()
-						score      : gameState.score } )
+				if gameState.lost and not gameState.reportedStats
+					timeTaken = timeInS - gameState.startTimeInS
+
+					Playtomic.ranged( "score", gameState.score )
+					Playtomic.average( "time", timeTaken )
+
+					gameState.reportedStats = true
 
 
 	module
