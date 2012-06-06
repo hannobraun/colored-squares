@@ -35,7 +35,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 
 				launchNext: false
 
-				grid: []
+				grid         : []
+				changesInGrid: []
 
 				lost : false
 				reset: false
@@ -94,6 +95,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 			unless gameState.startTimeInS?
 				gameState.startTimeInS = timeInS
 
+			gameState.changesInGrid.length = 0
+
 			refillNext(
 				gameState.next )
 			launchNext(
@@ -136,6 +139,11 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 						y += 1
 
 				grid[ x ][ y ] = square
+
+				gameState.changesInGrid.push( {
+					position: [ x, y ]
+					from    : "empty"
+					to      : square } )
 
 				if y > 0
 					gameState.score += 1

@@ -38,7 +38,8 @@ module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics"
 				passedTimeInS )
 			Graphics.updateRenderState(
 				renderState,
-				gameState )
+				gameState,
+				passedTimeInS )
 			Rendering.render(
 				Rendering.drawFunctions,
 				display,

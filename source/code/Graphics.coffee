@@ -7,20 +7,36 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 		createRenderState: ->
 			renderState =
 				renderables: []
+				animations : []
 
-		updateRenderState: ( renderState, gameState ) ->
+		updateRenderState: ( renderState, gameState, passedTimeInS ) ->
 			renderState.renderables.length = 0
+
+			for change in gameState.changesInGrid
+				renderState.animations.push( {
+					t       : 0
+					position: change.position
+					from    : change.from
+					to      : change.to } )
+
+			animationsToRemove = []
+			renderState.animations = for animation, i in renderState.animations when animation.t <= 1.0
+				animation.t += passedTimeInS / 0.2
+				animation
+				
 
 			appendGrid(
 				gameState.grid,
 				renderState.renderables )
 			appendSquares(
 				gameState.grid,
-				renderState.renderables )
+				renderState.renderables,
+				renderState.animations )
 			appendNext(
 				gameState.next,
 				gameState.grid,
-				renderState.renderables )
+				renderState.renderables,
+				renderState.animations )
 			appendScore(
 				gameState.score,
 				gameState.grid,
@@ -56,7 +72,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 			y += cellSize
 
-	appendSquares = ( grid, renderables ) ->
+	appendSquares = ( grid, renderables, animations ) ->
 		for x in [ 0...grid.length ]
 			for y in [ 0...grid[ x ].length ]
 				square = grid[ x ][ y ]
@@ -65,21 +81,51 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					y,
 					grid,
 					square,
-					renderables )
+					renderables,
+					animations )
 
-	appendNext = ( next, grid, renderables ) ->
+	appendNext = ( next, grid, renderables, animations ) ->
 		for square, i  in next.squares
 			appendSquare(
 				i + next.offset,
 				-1,
 				grid,
 				square,
-				renderables )
+				renderables,
+				animations )
 
-	appendSquare = ( x, y, grid, square, renderables ) ->
+	appendSquare = ( x, y, grid, square, renderables, animations ) ->
 		margin = 2
 
-		unless square == "empty"
+		animation = null
+		for theAnimation in animations
+			if theAnimation.position[ 0 ] == x and theAnimation.position[ 1 ] == y
+				animation = theAnimation
+
+		console.log( animation ) unless animation == null
+
+		if animation == null
+			unless square == "empty"
+				renderable = Rendering.createRenderable( "rectangle" )
+				renderable.position = [
+					xMin( grid ) + x*cellSize + margin
+					yMin( grid ) + y*cellSize + margin ]
+				renderable.resource =
+					size: [
+						cellSize - margin*2
+						cellSize - margin*2 ]
+					color: convertColor( squareColor( square ) )
+
+				renderables.push( renderable )
+		else
+			fromColor = squareColor( animation.from )
+			toColor   = squareColor( animation.to   )
+
+			animatedColor = [
+				interpolate( fromColor[ 0 ], toColor[ 0 ], animation.t )
+				interpolate( fromColor[ 1 ], toColor[ 1 ], animation.t )
+				interpolate( fromColor[ 2 ], toColor[ 2 ], animation.t ) ]
+
 			renderable = Rendering.createRenderable( "rectangle" )
 			renderable.position = [
 				xMin( grid ) + x*cellSize + margin
@@ -88,13 +134,24 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				size: [
 					cellSize - margin*2
 					cellSize - margin*2 ]
+				color: convertColor( animatedColor )
 
-			renderable.resource.color = switch square
-				when "red"     then "rgb(255,0,0)"
-				when "green"   then "rgb(0,255,0)"
-				when "blocked" then "rgb(127,127,127)"
+			console.log( renderable.resource.color )
 
 			renderables.push( renderable )
+
+	squareColor = ( square ) ->
+		switch square
+			when "red"     then [ 255,   0,   0 ]
+			when "green"   then [   0, 255,   0 ]
+			when "blocked" then [ 127, 127, 127 ]
+			when "empty"   then [   0,   0,   0 ]
+
+	convertColor = ( colorArray ) ->
+		"rgb(#{ colorArray[ 0 ] },#{ colorArray[ 1 ] },#{ colorArray[ 2 ] })"
+
+	interpolate = ( a, b, t ) ->
+		Math.floor( a + ( b - a ) * t )
 
 	appendScore = ( score, grid, renderables ) ->
 		renderable = Rendering.createRenderable( "text" )
