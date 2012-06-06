@@ -848,7 +848,7 @@
   });
 
   module("Logic", ["Input", "Entities", "Vec2", "Playtomic"], function(Input, Entities, Vec2, Playtomic) {
-    var blockSquares, checkLoseCondition, createEntity, destroyEntity, entityFactories, launchNext, module, nextEntityId, refillNext, removeFullColumns, removeSquares;
+    var blockSquares, checkIfColumnsHaveToBeRemoved, checkLoseCondition, createEntity, destroyEntity, entityFactories, launchNext, module, nextEntityId, refillNext, removeFullColumns, removeSquares;
     nextEntityId = 0;
     entityFactories = {
       "myEntity": function(args) {
@@ -876,6 +876,7 @@
       createGameState: function() {
         var gameState;
         return gameState = {
+          instructions: true,
           next: {
             numberOfSquares: 3,
             offset: 3,
@@ -883,6 +884,8 @@
           },
           launchNext: false,
           grid: [],
+          changesInGrid: [],
+          scoreEvents: [],
           lost: false,
           reset: false,
           score: 0,
@@ -891,7 +894,6 @@
       },
       initGameState: function(gameState) {
         var grid, next, x, y, _i, _j;
-        Playtomic.play();
         createEntity = function(type, args) {
           return Entities.createEntity(entityFactories, gameState.components, type, args);
         };
@@ -907,32 +909,50 @@
           }
         }
         Input.onKeys(["left arrow"], function() {
+          if (gameState.columnRemoval) {
+            return;
+          }
           next.offset -= 1;
           return next.offset = Math.max(0, next.offset);
         });
         Input.onKeys(["right arrow"], function() {
+          if (gameState.columnRemoval) {
+            return;
+          }
           next.offset += 1;
           return next.offset = Math.min(grid.length - next.squares.length, next.offset);
         });
         Input.onKeys(["space", "down arrow"], function() {
+          if (gameState.columnRemoval) {
+            return;
+          }
           if (!gameState.lost) {
             return gameState.launchNext = true;
           }
         });
         return Input.onKeys(["enter"], function() {
-          return gameState.reset = gameState.lost;
+          gameState.reset = gameState.lost;
+          if (gameState.instructions) {
+            gameState.instructions = false;
+            return Playtomic.play();
+          }
         });
       },
       updateGameState: function(gameState, currentInput, timeInS, passedTimeInS) {
         if (gameState.startTimeInS == null) {
           gameState.startTimeInS = timeInS;
         }
-        refillNext(gameState.next);
-        launchNext(gameState, gameState.next, gameState.grid);
-        blockSquares(gameState.grid);
-        removeSquares(gameState, gameState.grid);
-        removeFullColumns(gameState.grid, gameState.next);
-        return checkLoseCondition(gameState, gameState.grid, timeInS);
+        gameState.changesInGrid.length = 0;
+        gameState.scoreEvents.length = 0;
+        if (!(gameState.columnRemoval || gameState.instructions)) {
+          refillNext(gameState.next);
+          launchNext(gameState, gameState.next, gameState.grid);
+          blockSquares(gameState.grid, gameState);
+          removeSquares(gameState, gameState.grid);
+          checkIfColumnsHaveToBeRemoved(gameState.grid, gameState.next, gameState);
+          removeFullColumns(gameState.grid, gameState.next, gameState);
+          return checkLoseCondition(gameState, gameState.grid, timeInS);
+        }
       }
     };
     refillNext = function(next) {
@@ -965,14 +985,17 @@
             }
           }
           grid[x][y] = square;
-          if (y > 0) {
-            gameState.score += 1;
-          }
+          gameState.changesInGrid.push({
+            type: "next",
+            position: [x, y],
+            from: "empty",
+            to: square
+          });
         }
         return next.squares.length = 0;
       }
     };
-    blockSquares = function(grid) {
+    blockSquares = function(grid, gameState) {
       var square, topSquare, x, y, _i, _ref, _results;
       _results = [];
       for (x = _i = 0, _ref = grid.length; 0 <= _ref ? _i < _ref : _i > _ref; x = 0 <= _ref ? ++_i : --_i) {
@@ -985,8 +1008,14 @@
             if (topSquare === null && square !== "empty") {
               topSquare = square;
             }
-            if (topSquare !== null && square !== topSquare) {
-              _results1.push(grid[x][y] = "blocked");
+            if (topSquare !== null && square !== topSquare && square !== "blocked") {
+              grid[x][y] = "blocked";
+              _results1.push(gameState.changesInGrid.push({
+                type: "block",
+                position: [x, y],
+                from: square,
+                to: "blocked"
+              }));
             } else {
               _results1.push(void 0);
             }
@@ -997,7 +1026,7 @@
       return _results;
     };
     removeSquares = function(gameState, grid) {
-      var remove, removedSquares, secondSquare, square, topSquare, x, y, _i, _j, _ref, _ref1, _results;
+      var remove, removedSquares, score, secondSquare, square, topSquare, x, y, _i, _j, _ref, _ref1, _results;
       _results = [];
       for (x = _i = 0, _ref = grid.length; 0 <= _ref ? _i < _ref : _i > _ref; x = 0 <= _ref ? ++_i : --_i) {
         topSquare = grid[x][0];
@@ -1009,19 +1038,62 @@
             square = grid[x][y];
             remove = remove && square === topSquare;
             if (remove) {
+              square = grid[x][y];
               grid[x][y] = "empty";
               removedSquares += 1;
+              gameState.changesInGrid.push({
+                type: "remove",
+                position: [x, y],
+                from: square,
+                to: "empty"
+              });
             }
           }
-          _results.push(gameState.score += removedSquares * removedSquares);
+          score = removedSquares * removedSquares;
+          gameState.score += score;
+          if (score > 0) {
+            _results.push(gameState.scoreEvents.push({
+              score: score,
+              column: x
+            }));
+          } else {
+            _results.push(void 0);
+          }
         } else {
           _results.push(void 0);
         }
       }
       return _results;
     };
-    removeFullColumns = function(grid, next) {
+    checkIfColumnsHaveToBeRemoved = function(grid, next, gameState) {
+      var column, columnsToRemove, topSquare, x, _i, _len;
+      if (gameState.columnRemovalAnimationStarted) {
+        return;
+      }
+      if (gameState.columnRemovalAnimationFinished) {
+        gameState.columnRemovalAnimationFinished = false;
+        return;
+      }
+      columnsToRemove = [];
+      if (grid.length > next.numberOfSquares) {
+        for (x = _i = 0, _len = grid.length; _i < _len; x = ++_i) {
+          column = grid[x];
+          topSquare = column[0];
+          if (topSquare !== "empty") {
+            columnsToRemove.push(x);
+          }
+        }
+      }
+      if (columnsToRemove.length > 0) {
+        gameState.columnRemoval = true;
+        return gameState.columnsToRemove = columnsToRemove;
+      }
+    };
+    removeFullColumns = function(grid, next, gameState) {
       var column, columnsToRemove, columnsWereRemoved, currentY, nextFreeY, noMoreColumnsToRemove, square, topSquare, x, xToRemove, _i, _j, _len, _len1, _results;
+      if (gameState.columnRemoval) {
+        return;
+      }
       columnsWereRemoved = false;
       if (grid.length > next.numberOfSquares) {
         noMoreColumnsToRemove = false;
@@ -1075,6 +1147,9 @@
     };
     checkLoseCondition = function(gameState, grid, timeInS) {
       var column, timeTaken, topSquare, _i, _len, _results;
+      if (gameState.columnRemoval) {
+        return;
+      }
       if (!gameState.lost) {
         _results = [];
         for (_i = 0, _len = grid.length; _i < _len; _i++) {
@@ -1117,30 +1192,186 @@
           Logic.initGameState(gameState);
         }
         Logic.updateGameState(gameState, currentInput, currentTimeInS, passedTimeInS);
-        Graphics.updateRenderState(renderState, gameState);
+        Graphics.updateRenderState(renderState, gameState, passedTimeInS);
         return Rendering.render(Rendering.drawFunctions, display, renderData, renderState.renderables);
       });
     });
   });
 
   module("Graphics", ["Rendering", "Camera", "Vec2"], function(Rendering, Camera, Vec2) {
-    var appendEndScore, appendGrid, appendNext, appendScore, appendSquare, appendSquares, cellSize, gridSize, module, xMax, xMin, yMax, yMin;
+    var appendColumnRemovalAnimation, appendEndScore, appendGrid, appendNext, appendScore, appendScoreAnimations, appendSquare, appendSquares, cellSize, convertColor, gridSize, interpolate, margin, module, squareColor, xMax, xMin, yMax, yMin;
     cellSize = 32;
     gridSize = 9;
+    margin = 2;
     module = {
       createRenderState: function() {
         var renderState;
         return renderState = {
-          renderables: []
+          renderables: [],
+          squareAnimations: [],
+          scoreAnimations: [],
+          columnRemovalAnimations: []
         };
       },
-      updateRenderState: function(renderState, gameState) {
+      updateRenderState: function(renderState, gameState, passedTimeInS) {
+        var animation, box, change, column, duration, i, position, renderables, scoreEvent, size, text1, text2, text3, text4, text5, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
         renderState.renderables.length = 0;
-        appendGrid(gameState.grid, renderState.renderables);
-        appendSquares(gameState.grid, renderState.renderables);
-        appendNext(gameState.next, gameState.grid, renderState.renderables);
-        appendScore(gameState.score, gameState.grid, renderState.renderables);
-        return appendEndScore(gameState.lost, gameState.score, renderState.renderables);
+        if (gameState.instructions) {
+          renderables = renderState.renderables;
+          size = [440, 150];
+          position = Vec2.copy(size);
+          Vec2.scale(position, -0.5);
+          box = Rendering.createRenderable("rectangle");
+          box.position = position;
+          box.resource = {
+            color: "rgb(255,255,255)",
+            size: size
+          };
+          text1 = Rendering.createRenderable("text");
+          text1.position = [0, -40];
+          text1.resource = {
+            string: "Control the game with the left,",
+            textColor: "rgb(0,0,0)",
+            centered: [true, false],
+            font: "18px Monospace"
+          };
+          text2 = Rendering.createRenderable("text");
+          text2.position = [0, -20];
+          text2.resource = {
+            string: "right and down arrow keys.",
+            textColor: "rgb(0,0,0)",
+            centered: [true, false],
+            font: "18px Monospace"
+          };
+          text3 = Rendering.createRenderable("text");
+          text3.position = [0, 10];
+          text3.resource = {
+            string: "Try to stack squares of the same",
+            textColor: "rgb(0,0,0)",
+            centered: [true, false],
+            font: "18px Monospace"
+          };
+          text4 = Rendering.createRenderable("text");
+          text4.position = [0, 30];
+          text4.resource = {
+            string: "color as high as you can.",
+            textColor: "rgb(0,0,0)",
+            centered: [true, false],
+            font: "18px Monospace"
+          };
+          text5 = Rendering.createRenderable("text");
+          text5.position = [0, 60];
+          text5.resource = {
+            string: "(press enter to start the game)",
+            textColor: "rgb(0,0,0)",
+            centered: [true, false],
+            font: "14px Monospace"
+          };
+          renderables.push(box);
+          renderables.push(text1);
+          renderables.push(text2);
+          renderables.push(text3);
+          renderables.push(text4);
+          return renderables.push(text5);
+        } else {
+          _ref = gameState.changesInGrid;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            change = _ref[_i];
+            duration = (function() {
+              switch (change.type) {
+                case "next":
+                  return 0.2;
+                case "block":
+                  return 0.5;
+                case "remove":
+                  return 0.5;
+              }
+            })();
+            renderState.squareAnimations.push({
+              t: 0,
+              position: change.position,
+              from: change.from,
+              to: change.to,
+              duration: duration
+            });
+          }
+          _ref1 = gameState.scoreEvents;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            scoreEvent = _ref1[_j];
+            renderState.scoreAnimations.push({
+              t: 0,
+              score: scoreEvent.score,
+              column: scoreEvent.column
+            });
+          }
+          if (gameState.columnRemoval && !gameState.columnRemovalAnimationStarted) {
+            gameState.columnRemovalAnimationStarted = true;
+            _ref2 = gameState.columnsToRemove;
+            for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+              column = _ref2[_k];
+              renderState.columnRemovalAnimations.push({
+                t: 0,
+                column: column
+              });
+            }
+          }
+          renderState.squareAnimations = (function() {
+            var _l, _len3, _ref3, _results;
+            _ref3 = renderState.squareAnimations;
+            _results = [];
+            for (i = _l = 0, _len3 = _ref3.length; _l < _len3; i = ++_l) {
+              animation = _ref3[i];
+              if (!(animation.t <= 1.0)) {
+                continue;
+              }
+              animation.t += passedTimeInS / animation.duration;
+              _results.push(animation);
+            }
+            return _results;
+          })();
+          renderState.scoreAnimations = (function() {
+            var _l, _len3, _ref3, _results;
+            _ref3 = renderState.scoreAnimations;
+            _results = [];
+            for (i = _l = 0, _len3 = _ref3.length; _l < _len3; i = ++_l) {
+              animation = _ref3[i];
+              if (!(animation.t <= 1.0)) {
+                continue;
+              }
+              animation.t += passedTimeInS / 1.0;
+              _results.push(animation);
+            }
+            return _results;
+          })();
+          renderState.columnRemovalAnimations = (function() {
+            var _l, _len3, _ref3, _results;
+            _ref3 = renderState.columnRemovalAnimations;
+            _results = [];
+            for (i = _l = 0, _len3 = _ref3.length; _l < _len3; i = ++_l) {
+              animation = _ref3[i];
+              if (!(animation.t <= 1.0)) {
+                continue;
+              }
+              animation.t += passedTimeInS / 1.0;
+              _results.push(animation);
+            }
+            return _results;
+          })();
+          if (renderState.columnRemovalAnimations.length === 0) {
+            if (gameState.columnRemovalAnimationStarted) {
+              gameState.columnRemovalAnimationFinished = true;
+            }
+            gameState.columnRemovalAnimationStarted = false;
+            gameState.columnRemoval = false;
+          }
+          appendGrid(gameState.grid, renderState.renderables);
+          appendSquares(gameState.grid, renderState.renderables, renderState.squareAnimations);
+          appendNext(gameState.next, gameState.grid, renderState.renderables, renderState.squareAnimations);
+          appendColumnRemovalAnimation(gameState.grid, renderState.renderables, renderState.columnRemovalAnimations);
+          appendScoreAnimations(gameState.grid, renderState.scoreAnimations, renderState.renderables);
+          appendScore(gameState.score, gameState.grid, renderState.renderables);
+          return appendEndScore(gameState.lost, gameState.score, renderState.renderables);
+        }
       }
     };
     appendGrid = function(grid, renderables) {
@@ -1170,7 +1401,7 @@
       }
       return _results;
     };
-    appendSquares = function(grid, renderables) {
+    appendSquares = function(grid, renderables, squareAnimations) {
       var square, x, y, _i, _ref, _results;
       _results = [];
       for (x = _i = 0, _ref = grid.length; 0 <= _ref ? _i < _ref : _i > _ref; x = 0 <= _ref ? ++_i : --_i) {
@@ -1179,44 +1410,106 @@
           _results1 = [];
           for (y = _j = 0, _ref1 = grid[x].length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; y = 0 <= _ref1 ? ++_j : --_j) {
             square = grid[x][y];
-            _results1.push(appendSquare(x, y, grid, square, renderables));
+            _results1.push(appendSquare(x, y, grid, square, renderables, squareAnimations));
           }
           return _results1;
         })());
       }
       return _results;
     };
-    appendNext = function(next, grid, renderables) {
+    appendNext = function(next, grid, renderables, squareAnimations) {
       var i, square, _i, _len, _ref, _results;
       _ref = next.squares;
       _results = [];
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         square = _ref[i];
-        _results.push(appendSquare(i + next.offset, -1, grid, square, renderables));
+        _results.push(appendSquare(i + next.offset, -1, grid, square, renderables, squareAnimations));
       }
       return _results;
     };
-    appendSquare = function(x, y, grid, square, renderables) {
-      var margin, renderable;
-      margin = 2;
-      if (square !== "empty") {
+    appendSquare = function(x, y, grid, square, renderables, squareAnimations) {
+      var animatedColor, animation, fromColor, renderable, theAnimation, toColor, _i, _len;
+      animation = null;
+      for (_i = 0, _len = squareAnimations.length; _i < _len; _i++) {
+        theAnimation = squareAnimations[_i];
+        if (theAnimation.position[0] === x && theAnimation.position[1] === y) {
+          animation = theAnimation;
+        }
+      }
+      if (animation === null) {
+        if (square !== "empty") {
+          renderable = Rendering.createRenderable("rectangle");
+          renderable.position = [xMin(grid) + x * cellSize + margin, yMin(grid) + y * cellSize + margin];
+          renderable.resource = {
+            size: [cellSize - margin * 2, cellSize - margin * 2],
+            color: convertColor(squareColor(square))
+          };
+          return renderables.push(renderable);
+        }
+      } else {
+        fromColor = squareColor(animation.from);
+        toColor = squareColor(animation.to);
+        animatedColor = [interpolate(fromColor[0], toColor[0], animation.t), interpolate(fromColor[1], toColor[1], animation.t), interpolate(fromColor[2], toColor[2], animation.t)];
         renderable = Rendering.createRenderable("rectangle");
         renderable.position = [xMin(grid) + x * cellSize + margin, yMin(grid) + y * cellSize + margin];
         renderable.resource = {
-          size: [cellSize - margin * 2, cellSize - margin * 2]
+          size: [cellSize - margin * 2, cellSize - margin * 2],
+          color: convertColor(animatedColor)
         };
-        renderable.resource.color = (function() {
-          switch (square) {
-            case "red":
-              return "rgb(255,0,0)";
-            case "green":
-              return "rgb(0,255,0)";
-            case "blocked":
-              return "rgb(127,127,127)";
-          }
-        })();
         return renderables.push(renderable);
       }
+    };
+    squareColor = function(square) {
+      switch (square) {
+        case "red":
+          return [255, 0, 0];
+        case "green":
+          return [0, 255, 0];
+        case "blocked":
+          return [127, 127, 127];
+        case "empty":
+          return [0, 0, 0];
+      }
+    };
+    convertColor = function(colorArray) {
+      return "rgb(" + colorArray[0] + "," + colorArray[1] + "," + colorArray[2] + ")";
+    };
+    interpolate = function(a, b, t) {
+      return Math.floor(a + (b - a) * t);
+    };
+    appendColumnRemovalAnimation = function(grid, renderables, columnRemovalAnimations) {
+      var alpha, animation, color, renderable, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = columnRemovalAnimations.length; _i < _len; _i++) {
+        animation = columnRemovalAnimations[_i];
+        alpha = animation.t;
+        color = "rgba(0,0,0," + alpha + ")";
+        renderable = Rendering.createRenderable("rectangle");
+        renderable.position = [xMin(grid) + animation.column * cellSize, yMin(grid) + 0 * cellSize];
+        renderable.resource = {
+          color: color,
+          size: [cellSize * 1, cellSize * grid[animation.column].length]
+        };
+        _results.push(renderables.push(renderable));
+      }
+      return _results;
+    };
+    appendScoreAnimations = function(grid, scoreAnimations, renderables) {
+      var animation, renderable, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = scoreAnimations.length; _i < _len; _i++) {
+        animation = scoreAnimations[_i];
+        renderable = Rendering.createRenderable("text");
+        renderable.position = [xMin(grid) + animation.column * cellSize + cellSize / 2, yMin(grid) + 0 * cellSize + cellSize / 2 + 12];
+        renderable.resource = {
+          string: "" + animation.score,
+          textColor: "rgb(255,255,0)",
+          centered: [true, false],
+          font: "bold 24px Monospace"
+        };
+        _results.push(renderables.push(renderable));
+      }
+      return _results;
     };
     appendScore = function(score, grid, renderables) {
       var renderable;
@@ -1300,11 +1593,9 @@
         return Playtomic.Log.Play();
       },
       average: function(metric, value) {
-        console.log("average", metric, value);
         return Playtomic.Log.LevelAverageMetric(metric, "level1", value);
       },
       ranged: function(metric, value) {
-        console.log("ranged", metric, value);
         return Playtomic.Log.LevelRangedMetric(metric, "level1", value);
       }
     };
