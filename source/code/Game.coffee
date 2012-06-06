@@ -1,6 +1,7 @@
-module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics", "Stats" ], ( Images, Rendering, Input, MainLoop, Logic, Graphics, Stats )->
+module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics", "Playtomic" ], ( Images, Rendering, Input, MainLoop, Logic, Graphics, Playtomic )->
 	window.startTime = new Date().toString()
-	Stats.sayHello()
+
+	Playtomic.view()
 
 	Images.loadImages [ "images/star.png" ], ( rawImages ) ->
 		images = Images.process( rawImages )
