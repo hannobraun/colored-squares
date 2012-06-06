@@ -1,13 +1,16 @@
 module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 ) ->
 	cellSize = 32
 	gridSize = 9
+	margin   = 2
 
 
 	module =
 		createRenderState: ->
 			renderState =
 				renderables: []
-				animations : []
+
+				squareAnimations: []
+				scoreAnimations : []
 
 		updateRenderState: ( renderState, gameState, passedTimeInS ) ->
 			renderState.renderables.length = 0
@@ -18,16 +21,26 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					when "block"  then 0.5
 					when "remove" then 0.5
 
-				renderState.animations.push( {
+				renderState.squareAnimations.push( {
 					t       : 0
 					position: change.position
 					from    : change.from
 					to      : change.to
 					duration: duration } )
 
-			animationsToRemove = []
-			renderState.animations = for animation, i in renderState.animations when animation.t <= 1.0
+			for scoreEvent in gameState.scoreEvents
+				renderState.scoreAnimations.push( {
+					t     : 0
+					score : scoreEvent.score
+					column: scoreEvent.column } )
+
+
+			renderState.squareAnimations = for animation, i in renderState.squareAnimations when animation.t <= 1.0
 				animation.t += passedTimeInS / animation.duration
+				animation
+
+			renderState.scoreAnimations = for animation, i in renderState.scoreAnimations when animation.t <= 1.0
+				animation.t += passedTimeInS / 1.0
 				animation
 				
 
@@ -37,12 +50,16 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			appendSquares(
 				gameState.grid,
 				renderState.renderables,
-				renderState.animations )
+				renderState.squareAnimations )
 			appendNext(
 				gameState.next,
 				gameState.grid,
 				renderState.renderables,
-				renderState.animations )
+				renderState.squareAnimations )
+			appendScoreAnimations(
+				gameState.grid,
+				renderState.scoreAnimations,
+				renderState.renderables )
 			appendScore(
 				gameState.score,
 				gameState.grid,
@@ -78,7 +95,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 			y += cellSize
 
-	appendSquares = ( grid, renderables, animations ) ->
+	appendSquares = ( grid, renderables, squareAnimations ) ->
 		for x in [ 0...grid.length ]
 			for y in [ 0...grid[ x ].length ]
 				square = grid[ x ][ y ]
@@ -88,9 +105,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					grid,
 					square,
 					renderables,
-					animations )
+					squareAnimations )
 
-	appendNext = ( next, grid, renderables, animations ) ->
+	appendNext = ( next, grid, renderables, squareAnimations ) ->
 		for square, i  in next.squares
 			appendSquare(
 				i + next.offset,
@@ -98,13 +115,11 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				grid,
 				square,
 				renderables,
-				animations )
+				squareAnimations )
 
-	appendSquare = ( x, y, grid, square, renderables, animations ) ->
-		margin = 2
-
+	appendSquare = ( x, y, grid, square, renderables, squareAnimations ) ->
 		animation = null
-		for theAnimation in animations
+		for theAnimation in squareAnimations
 			if theAnimation.position[ 0 ] == x and theAnimation.position[ 1 ] == y
 				animation = theAnimation
 
@@ -154,6 +169,22 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 	interpolate = ( a, b, t ) ->
 		Math.floor( a + ( b - a ) * t )
+
+	appendScoreAnimations = ( grid, scoreAnimations, renderables ) ->
+		for animation in scoreAnimations
+			renderable = Rendering.createRenderable( "text" )
+			renderable.position = [
+					xMin( grid ) + animation.column*cellSize + cellSize / 2
+					yMin( grid ) +                0*cellSize + cellSize / 2 + 12 ]
+			renderable.resource =
+				string: "#{ animation.score }"
+				textColor: "rgb(255,255,0)"
+				centered: [ true, false ]
+				font: "bold 24px Monospace"
+
+			console.log( animation )
+
+			renderables.push( renderable )
 
 	appendScore = ( score, grid, renderables ) ->
 		renderable = Rendering.createRenderable( "text" )

@@ -38,6 +38,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				grid         : []
 				changesInGrid: []
 
+				scoreEvents: []
+
 				lost : false
 				reset: false
 
@@ -96,6 +98,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				gameState.startTimeInS = timeInS
 
 			gameState.changesInGrid.length = 0
+			gameState.scoreEvents.length = 0
 
 			refillNext(
 				gameState.next )
@@ -195,7 +198,13 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 							from    : square
 							to      : "empty" } )
 
-				gameState.score += removedSquares*removedSquares
+				score = removedSquares*removedSquares
+
+				gameState.score += score
+
+				gameState.scoreEvents.push( {
+					score : score
+					column: x } )
 
 	removeFullColumns = ( grid, next ) ->
 		columnsWereRemoved = false
