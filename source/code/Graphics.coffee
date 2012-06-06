@@ -14,8 +14,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 			for change in gameState.changesInGrid
 				duration = switch change.type
-					when "next"  then 0.2
-					when "block" then 0.5
+					when "next"   then 0.2
+					when "block"  then 0.5
+					when "remove" then 0.5
 
 				renderState.animations.push( {
 					t       : 0

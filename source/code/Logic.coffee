@@ -184,8 +184,16 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 					remove = remove and square == topSquare
 
 					if remove
+						square = grid[ x ][ y ]
+
 						grid[ x ][ y ] = "empty"
 						removedSquares += 1
+
+						gameState.changesInGrid.push( {
+							type    : "remove"
+							position: [ x, y ]
+							from    : square
+							to      : "empty" } )
 
 				gameState.score += removedSquares*removedSquares
 
