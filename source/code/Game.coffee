@@ -21,6 +21,8 @@ module "Game", [ "Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics"
 
 		display      = Rendering.createDisplay()
 		currentInput = Input.createCurrentInput( display )
+
+
 		gameState    = Logic.createGameState()
 		renderState  = Graphics.createRenderState()
 

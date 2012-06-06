@@ -27,6 +27,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 	module =
 		createGameState: ->
 			gameState =
+				instructions: true
+
 				next:
 					numberOfSquares: 3
 
@@ -50,8 +52,6 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				components: {}
 
 		initGameState: ( gameState ) ->
-			Playtomic.play()
-
 			# These are the shortcuts we will use for creating and destroying
 			# entities.
 			createEntity = ( type, args ) ->
@@ -101,6 +101,10 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 			Input.onKeys [ "enter" ], ->
 				gameState.reset = gameState.lost
 
+				if gameState.instructions
+					gameState.instructions = false
+					Playtomic.play()
+
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			unless gameState.startTimeInS?
@@ -109,7 +113,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 			gameState.changesInGrid.length = 0
 			gameState.scoreEvents.length = 0
 
-			unless gameState.columnRemoval
+			unless gameState.columnRemoval or gameState.instructions
 				refillNext(
 					gameState.next )
 				launchNext(
