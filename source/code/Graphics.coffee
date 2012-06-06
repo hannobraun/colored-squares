@@ -9,8 +9,9 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderState =
 				renderables: []
 
-				squareAnimations: []
-				scoreAnimations : []
+				squareAnimations       : []
+				scoreAnimations        : []
+				columnRemovalAnimations: []
 
 		updateRenderState: ( renderState, gameState, passedTimeInS ) ->
 			renderState.renderables.length = 0
@@ -35,6 +36,15 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					column: scoreEvent.column } )
 
 
+			if gameState.columnRemoval and not gameState.columnRemovalAnimationStarted
+				gameState.columnRemovalAnimationStarted = true
+				for column in gameState.columnsToRemove
+					renderState.columnRemovalAnimations.push( {
+						t     : 0
+						column: column } )
+
+
+
 			renderState.squareAnimations = for animation, i in renderState.squareAnimations when animation.t <= 1.0
 				animation.t += passedTimeInS / animation.duration
 				animation
@@ -42,6 +52,18 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderState.scoreAnimations = for animation, i in renderState.scoreAnimations when animation.t <= 1.0
 				animation.t += passedTimeInS / 1.0
 				animation
+
+			renderState.columnRemovalAnimations = for animation, i in renderState.columnRemovalAnimations when animation.t <= 1.0
+				animation.t += passedTimeInS / 1.0
+				animation
+
+
+			if renderState.columnRemovalAnimations.length == 0
+				if gameState.columnRemovalAnimationStarted
+					gameState.columnRemovalAnimationFinished = true
+
+				gameState.columnRemovalAnimationStarted  = false
+				gameState.columnRemoval                  = false
 				
 
 			appendGrid(
@@ -56,6 +78,10 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				gameState.grid,
 				renderState.renderables,
 				renderState.squareAnimations )
+			appendColumnRemovalAnimation(
+				gameState.grid,
+				renderState.renderables,
+				renderState.columnRemovalAnimations )
 			appendScoreAnimations(
 				gameState.grid,
 				renderState.scoreAnimations,
@@ -170,6 +196,23 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 	interpolate = ( a, b, t ) ->
 		Math.floor( a + ( b - a ) * t )
 
+	appendColumnRemovalAnimation = ( grid, renderables, columnRemovalAnimations ) ->
+		for animation in columnRemovalAnimations
+			alpha = animation.t
+			color = "rgba(0,0,0,#{ alpha })"
+
+			renderable = Rendering.createRenderable( "rectangle" )
+			renderable.position = [
+				xMin( grid ) + animation.column*cellSize
+				yMin( grid ) +                0*cellSize ]
+			renderable.resource =
+				color: color
+				size : [
+					cellSize * 1
+					cellSize * grid[ animation.column ].length ]
+
+			renderables.push( renderable )
+
 	appendScoreAnimations = ( grid, scoreAnimations, renderables ) ->
 		for animation in scoreAnimations
 			renderable = Rendering.createRenderable( "text" )
@@ -181,8 +224,6 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				textColor: "rgb(255,255,0)"
 				centered: [ true, false ]
 				font: "bold 24px Monospace"
-
-			console.log( animation )
 
 			renderables.push( renderable )
 

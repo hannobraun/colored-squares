@@ -77,15 +77,24 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 
 
 			Input.onKeys [ "left arrow" ], ->
+				if gameState.columnRemoval
+					return
+
 				next.offset -= 1
 				next.offset = Math.max( 0, next.offset )
 			Input.onKeys [ "right arrow" ], ->
+				if gameState.columnRemoval
+					return
+
 				next.offset += 1
 				next.offset = Math.min(
 					grid.length - next.squares.length,
 					next.offset )
 
 			Input.onKeys [ "space", "down arrow" ], ->
+				if gameState.columnRemoval
+					return
+
 				unless gameState.lost
 					gameState.launchNext = true
 
@@ -100,25 +109,31 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 			gameState.changesInGrid.length = 0
 			gameState.scoreEvents.length = 0
 
-			refillNext(
-				gameState.next )
-			launchNext(
-				gameState,
-				gameState.next,
-				gameState.grid )
-			blockSquares(
-				gameState.grid,
-				gameState )
-			removeSquares(
-				gameState,
-				gameState.grid )
-			removeFullColumns(
-				gameState.grid,
-				gameState.next )
-			checkLoseCondition(
-				gameState,
-				gameState.grid,
-				timeInS )
+			unless gameState.columnRemoval
+				refillNext(
+					gameState.next )
+				launchNext(
+					gameState,
+					gameState.next,
+					gameState.grid )
+				blockSquares(
+					gameState.grid,
+					gameState )
+				removeSquares(
+					gameState,
+					gameState.grid )
+				checkIfColumnsHaveToBeRemoved(
+					gameState.grid,
+					gameState.next,
+					gameState )
+				removeFullColumns(
+					gameState.grid,
+					gameState.next,
+					gameState )
+				checkLoseCondition(
+					gameState,
+					gameState.grid,
+					timeInS )
 
 
 	refillNext = ( next ) ->
@@ -206,7 +221,31 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 					score : score
 					column: x } )
 
-	removeFullColumns = ( grid, next ) ->
+	checkIfColumnsHaveToBeRemoved = ( grid, next, gameState ) ->
+		if gameState.columnRemovalAnimationStarted
+			return
+
+		if gameState.columnRemovalAnimationFinished
+			gameState.columnRemovalAnimationFinished = false
+			return
+
+		columnsToRemove = []
+
+		if grid.length > next.numberOfSquares
+			for column, x in grid
+				topSquare = column[ 0 ]
+
+				if topSquare != "empty"
+					columnsToRemove.push( x )
+
+		if columnsToRemove.length > 0
+			gameState.columnRemoval   = true
+			gameState.columnsToRemove = columnsToRemove
+
+	removeFullColumns = ( grid, next, gameState ) ->
+		if gameState.columnRemoval
+			return
+
 		columnsWereRemoved = false
 
 		if grid.length > next.numberOfSquares
@@ -254,6 +293,9 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 					currentY -= 1
 
 	checkLoseCondition = ( gameState, grid, timeInS ) ->
+		if gameState.columnRemoval
+			return
+
 		unless gameState.lost
 			for column in grid
 				topSquare = column[ 0 ]
