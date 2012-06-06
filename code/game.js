@@ -847,7 +847,7 @@
     };
   });
 
-  module("Logic", ["Input", "Entities", "Vec2"], function(Input, Entities, Vec2) {
+  module("Logic", ["Input", "Entities", "Vec2", "Playtomic"], function(Input, Entities, Vec2, Playtomic) {
     var blockSquares, checkLoseCondition, createEntity, destroyEntity, entityFactories, launchNext, module, nextEntityId, refillNext, removeFullColumns, removeSquares;
     nextEntityId = 0;
     entityFactories = {
@@ -891,6 +891,7 @@
       },
       initGameState: function(gameState) {
         var grid, next, x, y, _i, _j;
+        Playtomic.play();
         createEntity = function(type, args) {
           return Entities.createEntity(entityFactories, gameState.components, type, args);
         };
@@ -923,12 +924,15 @@
         });
       },
       updateGameState: function(gameState, currentInput, timeInS, passedTimeInS) {
+        if (gameState.startTimeInS == null) {
+          gameState.startTimeInS = timeInS;
+        }
         refillNext(gameState.next);
         launchNext(gameState, gameState.next, gameState.grid);
         blockSquares(gameState.grid);
         removeSquares(gameState, gameState.grid);
         removeFullColumns(gameState.grid, gameState.next);
-        return checkLoseCondition(gameState, gameState.grid);
+        return checkLoseCondition(gameState, gameState.grid, timeInS);
       }
     };
     refillNext = function(next) {
@@ -1052,7 +1056,7 @@
           _results.push((function() {
             var _results1;
             _results1 = [];
-            while (column[currentY] !== "empty") {
+            while (!(column[currentY] === "empty" || currentY < 0)) {
               if (column[currentY] === "blocked") {
                 column[currentY] = "empty";
               } else {
@@ -1069,20 +1073,32 @@
         return _results;
       }
     };
-    checkLoseCondition = function(gameState, grid) {
-      var column, topSquare, _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = grid.length; _i < _len; _i++) {
-        column = grid[_i];
-        topSquare = column[0];
-        _results.push(gameState.lost = gameState.lost || topSquare !== "empty");
+    checkLoseCondition = function(gameState, grid, timeInS) {
+      var column, timeTaken, topSquare, _i, _len, _results;
+      if (!gameState.lost) {
+        _results = [];
+        for (_i = 0, _len = grid.length; _i < _len; _i++) {
+          column = grid[_i];
+          topSquare = column[0];
+          gameState.lost = gameState.lost || topSquare !== "empty";
+          if (gameState.lost && !gameState.reportedStats) {
+            timeTaken = timeInS - gameState.startTimeInS;
+            Playtomic.ranged("score", gameState.score);
+            Playtomic.average("time", timeTaken);
+            _results.push(gameState.reportedStats = true);
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
       }
-      return _results;
     };
     return module;
   });
 
-  module("Game", ["Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics"], function(Images, Rendering, Input, MainLoop, Logic, Graphics) {
+  module("Game", ["Images", "Rendering", "Input", "MainLoop", "Logic", "Graphics", "Playtomic"], function(Images, Rendering, Input, MainLoop, Logic, Graphics, Playtomic) {
+    window.startTime = new Date().toString();
+    Playtomic.view();
     return Images.loadImages(["images/star.png"], function(rawImages) {
       var currentInput, display, gameState, images, renderData, renderState;
       images = Images.process(rawImages);
@@ -1269,6 +1285,29 @@
       return grid[0].length / 2 * cellSize;
     };
     return module;
+  });
+
+  module("Playtomic", [], function() {
+    var apiKey, gameId, guid, module;
+    gameId = 428191;
+    guid = "5519409305d24c43";
+    apiKey = "d0e76e8b41b74561ba6d2aeaff51ec";
+    return module = {
+      view: function() {
+        return Playtomic.Log.View(gameId, guid, apiKey, document.location);
+      },
+      play: function() {
+        return Playtomic.Log.Play();
+      },
+      average: function(metric, value) {
+        console.log("average", metric, value);
+        return Playtomic.Log.LevelAverageMetric(metric, "level1", value);
+      },
+      ranged: function(metric, value) {
+        console.log("ranged", metric, value);
+        return Playtomic.Log.LevelRangedMetric(metric, "level1", value);
+      }
+    };
   });
 
 }).call(this);
