@@ -13,15 +13,20 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			renderState.renderables.length = 0
 
 			for change in gameState.changesInGrid
+				duration = switch change.type
+					when "next"  then 0.2
+					when "block" then 0.5
+
 				renderState.animations.push( {
 					t       : 0
 					position: change.position
 					from    : change.from
-					to      : change.to } )
+					to      : change.to
+					duration: duration } )
 
 			animationsToRemove = []
 			renderState.animations = for animation, i in renderState.animations when animation.t <= 1.0
-				animation.t += passedTimeInS / 0.2
+				animation.t += passedTimeInS / animation.duration
 				animation
 				
 
@@ -102,8 +107,6 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 			if theAnimation.position[ 0 ] == x and theAnimation.position[ 1 ] == y
 				animation = theAnimation
 
-		console.log( animation ) unless animation == null
-
 		if animation == null
 			unless square == "empty"
 				renderable = Rendering.createRenderable( "rectangle" )
@@ -135,8 +138,6 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 					cellSize - margin*2
 					cellSize - margin*2 ]
 				color: convertColor( animatedColor )
-
-			console.log( renderable.resource.color )
 
 			renderables.push( renderable )
 

@@ -104,7 +104,8 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				gameState.next,
 				gameState.grid )
 			blockSquares(
-				gameState.grid )
+				gameState.grid,
+				gameState )
 			removeSquares(
 				gameState,
 				gameState.grid )
@@ -141,6 +142,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				grid[ x ][ y ] = square
 
 				gameState.changesInGrid.push( {
+					type    : "next"
 					position: [ x, y ]
 					from    : "empty"
 					to      : square } )
@@ -150,7 +152,7 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 
 			next.squares.length = 0
 
-	blockSquares = ( grid ) ->
+	blockSquares = ( grid, gameState ) ->
 		for x in [ 0...grid.length ]
 			topSquare = null
 
@@ -159,9 +161,14 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 				if topSquare == null and square != "empty"
 					topSquare = square
 
-				if topSquare != null and square != topSquare
+				if topSquare != null and square != topSquare and square != "blocked"
 					grid[ x ][ y ] = "blocked"
 
+					gameState.changesInGrid.push( {
+						type    : "block"
+						position: [ x, y ]
+						from    : square
+						to      : "blocked" } )
 
 	removeSquares = ( gameState, grid ) ->
 		for x in [ 0...grid.length ]
