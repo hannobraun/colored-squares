@@ -49,7 +49,7 @@ module "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				text3 = Rendering.createRenderable( "text" )
 				text3.position = [ 0, 10 ]
 				text3.resource =
-					string: "Try to build stacks of the same"
+					string: "Try to stack squares of the same"
 					textColor: "rgb(0,0,0)"
 					centered: [ true, false ]
 					font: "18px Monospace"
