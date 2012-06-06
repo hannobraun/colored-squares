@@ -217,9 +217,10 @@ module "Logic", [ "Input", "Entities", "Vec2", "Playtomic" ], ( Input, Entities,
 
 				gameState.score += score
 
-				gameState.scoreEvents.push( {
-					score : score
-					column: x } )
+				if score > 0
+					gameState.scoreEvents.push( {
+						score : score
+						column: x } )
 
 	checkIfColumnsHaveToBeRemoved = ( grid, next, gameState ) ->
 		if gameState.columnRemovalAnimationStarted
